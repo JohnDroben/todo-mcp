@@ -16,6 +16,66 @@ services:
 
   mcp-server:
     build: .
+    command: uvicorn mcp_server.server:app --host 0.0.0.0 --port 8000
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    networks:
+      - todo-net
+    depends_on:
+      - db
+
+  api:
+    build: .
+    command: uvicorn api.main:app --host 0.0.0.0 --port 8001
+    volumes:
+      - .:/app
+    ports:
+      - "8001:8001"
+    environment:
+      - MCP_URL=http://mcp-server:8000
+    depends_on:
+      - mcp-server
+    networks:
+      - todo-net
+
+  bot:
+    build: .
+    command: python bot/bot.py
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    depends_on:
+      - api
+    networks:
+      - todo-net
+
+networks:
+  todo-net:
+    driver: bridge
+
+volumes:
+  postgres_data:
+version: '3.8'
+
+services:
+  db:
+    image: postgres:13
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    networks:
+      - todo-net
+
+  mcp-server:
+    build: .
     command: uvicorn mcp-server.server:app --host 0.0.0.0 --port 8000
     volumes:
       - .:/app
