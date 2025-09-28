@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+httpx
+pyTelegramBotAPI
+pydantic
+python-dotenv
+SQLAlchemy
+psycopg2-binary
